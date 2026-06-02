@@ -10,9 +10,9 @@ const searchPages = async (req,res)=>{
 
         const result = await pool.query(
         `Select * from crawled_pages
-        where raw_content ILIKE $1
+        where to_tsvector(raw_content)  @@ plainto_tsquery($1)
         `,
-        [`%${q}%`]
+        [q]
         );
 
         res.json(result.rows);
