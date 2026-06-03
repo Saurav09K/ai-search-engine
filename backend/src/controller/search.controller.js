@@ -10,15 +10,21 @@ const searchPages = async (req,res)=>{
 
         const result = await pool.query(
         `
-            SELECT id, url, title,
+            SELECT
+            pc.chunk_text,
+            pc.chunk_index,
+            cp.title,
+            cp.url,
             ts_rank(
-            to_tsvector(raw_content),
+            to_tsvector(pc.chunk_text),
             plainto_tsquery($1)
             ) AS rank
-            FROM crawled_pages
-            WHERE to_tsvector(raw_content)
+            FROM page_chunks pc
+            JOIN crawled_pages cp
+            ON cp.id = pc.page_id
+            WHERE to_tsvector(pc.chunk_text)
             @@ plainto_tsquery($1)
-            ORDER BY rank DESC
+            ORDER BY rank DESC;
             `,
             [q]
         );
