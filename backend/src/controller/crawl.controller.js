@@ -39,7 +39,7 @@ const crawlPage = async (req, res) => {
         const pageId = dbResult.rows[0].id;
         
         const chunks = [];
-        $("p, h1, h2, h3, li, span").each((index, element) => {
+        $("p, h1, h2, h3, li").each((index, element) => {
             const text = $(element).text().replace(/\s+/g, ' ').trim();
             
             if (text.split(' ').length > 5) {
