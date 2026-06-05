@@ -33,13 +33,19 @@ function App() {
       const searchPromise = fetch(`${API_BASE_URL}/api/search?q=${encodedQuery}`)
         .then(async (response) => {
           if (!response.ok) {
-            throw new Error(`Search request failed with status ${response.status}`)
+            throw new Error(`Search failed with status ${response.status}`)
           }
 
           return response.json()
         })
         .then((data) => {
           setSources(Array.isArray(data) ? data : [])
+          return data
+        })
+        .catch((error) => {
+          console.error(error)
+          setSources([])
+          return []
         })
         .finally(() => {
           setIsSearching(false)
@@ -48,13 +54,19 @@ function App() {
       const askPromise = fetch(`${API_BASE_URL}/api/ask?q=${encodedQuery}`)
         .then(async (response) => {
           if (!response.ok) {
-            throw new Error(`Ask request failed with status ${response.status}`)
+            throw new Error(`Ask failed with status ${response.status}`)
           }
 
           return response.json()
         })
         .then((data) => {
           setAiAnswer(data?.answer || '')
+          return data
+        })
+        .catch((error) => {
+          console.error(error)
+          setAiAnswer('')
+          return { answer: '' }
         })
         .finally(() => {
           setIsAsking(false)
@@ -63,41 +75,42 @@ function App() {
       await Promise.all([searchPromise, askPromise])
     } catch (error) {
       console.error(error)
+    } finally {
+      // Individual request promises own their loading states.
     }
   }
 
-  const hasSubmitted = Boolean(aiAnswer) || sources.length > 0 || isSearching || isAsking
+  const hasResults = isSearching || isAsking || Boolean(aiAnswer) || sources.length > 0
 
   return (
-    <main className="app-shell">
-      <header className="top-bar" aria-label="Application header">
-        <span className="brand-mark">RAG</span>
-        <span className="system-status">
-          <span className="status-dot" aria-hidden="true" />
-          Local index
-        </span>
-      </header>
+    <>
+      <div className="ambient-background" aria-hidden="true">
+        <div className="ambient-light ambient-light-white" />
+        <div className="ambient-light ambient-light-cyan" />
+      </div>
 
-      <section className="search-hero" aria-labelledby="app-title">
-        <p className="eyebrow">Retrieval augmented search</p>
-        <h1 id="app-title" className="app-title">
-          Search the source of truth.
-        </h1>
-        <SearchBar
-          query={query}
-          setQuery={setQuery}
-          onSubmit={handleSearch}
-          isLoading={isSearching || isAsking}
-        />
-      </section>
-
-      {hasSubmitted && (
-        <section className="results-grid" aria-label="Search results">
-          <AnswerBox answer={aiAnswer} isLoading={isAsking} query={query} />
-          <SourcesList sources={sources} isLoading={isSearching} />
+      <main className="app-shell">
+        <section className="hero" aria-labelledby="app-title">
+          <p className="eyebrow">Retrieval augmented search</p>
+          <h1 id="app-title" className="app-title">
+            Ask the index.
+          </h1>
+          <SearchBar
+            query={query}
+            setQuery={setQuery}
+            onSubmit={handleSearch}
+            isLoading={isSearching || isAsking}
+          />
         </section>
-      )}
-    </main>
+
+        {hasResults && (
+          <section className="results-grid" aria-label="Search results">
+            <AnswerBox answer={aiAnswer} isLoading={isAsking} />
+            <SourcesList sources={sources} isLoading={isSearching} />
+          </section>
+        )}
+      </main>
+    </>
   )
 }
 

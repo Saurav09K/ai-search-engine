@@ -48,7 +48,8 @@ const getAnswerFromGemini = async (question) => {
         You are a highly intelligent, technical search engine assistant.
         Your job is to answer the user's question using ONLY the provided context below.
         If the answer is not explicitly contained in the context, do not guess or hallucinate.
-        Simply say "I don't have enough information in my database to answer that."
+        Simply say "I don't have enough information in my database to answer that otherwise give
+        a deatiled answer based on the information provided in the context."
 
         CONTEXT DOCUMENTS:
         ${contextText}
